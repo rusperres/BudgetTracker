@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <label>Amount:</label><br>
+    <input type="number" id="amount" step="0.01" min="0"><br><br>
+
+    <label>From Account:</label><br>
+    <select id="from_account">
+      <option value="Maya (Emergency Fund)">Maya (Emergency Fund)</option>
+      <option value="Maya (Time Deposit)">Maya (Time Deposit)</option>
+      <option value="Cash on Hand">Cash on Hand</option>
+      <option value="Tithes">Tithes</option>
+      <option value="FirstMetroSec">FirstMetroSec</option>
+      <option value="Metrobank">Metrobank</option>
+      <option value="Maribank (GF Fund)">Maribank (GF Fund)</option>
+      <option value="Maribank (Gold Investment)">Maribank (Gold Investment)</option>
+      <option value="GoTyme (Expense Fund)">GoTyme (Expense Fund)</option>
+      <option value="Atome (Debt Fund)">Atome (Debt Fund)</option>
+    </select><br><br>
+
+    <label>To Account:</label><br>
+    <select id="to_account">
+      <option value="Maya (Emergency Fund)">Maya (Emergency Fund)</option>
+      <option value="Maya (Time Deposit)">Maya (Time Deposit)</option>
+      <option value="Cash on Hand">Cash on Hand</option>
+      <option value="Tithes">Tithes</option>
+      <option value="FirstMetroSec">FirstMetroSec</option>
+      <option value="Metrobank">Metrobank</option>
+      <option value="Maribank (GF Fund)">Maribank (GF Fund)</option>
+      <option value="Maribank (Gold Investment)">Maribank (Gold Investment)</option>
+      <option value="GoTyme (Expense Fund)">GoTyme (Expense Fund)</option>
+      <option value="Atome (Debt Fund)">Atome (Debt Fund)</option>
+    </select><br><br>
+
+    <button onclick="submitTransfer()">Submit</button>
+
+    <script>
+      function submitTransfer() {
+        const amount = document.getElementById("amount").value;
+        const fromAccount = document.getElementById("from_account").value;
+        const toAccount = document.getElementById("to_account").value;
+
+        if (!amount || fromAccount === toAccount) {
+          alert("Please enter a valid amount and choose different accounts.");
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(() => google.script.host.close())
+          .submitTransfer(amount, fromAccount, toAccount);
+      }
+    </script>
+  </body>
+</html>
