@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h2 {
+      margin: 10px;
+    }
+
+    .sheet-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Draggable form */
+    .sidebar {
+      position: absolute;
+      top: 50px;
+      left: 20px;
+      width: 350px;
+      max-height: 80%;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #ccc;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      z-index: 10;
+      border-radius: 8px;
+      cursor: move;
+    }
+
+    button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Budget Tracker</h2>
+
+  <div class="sheet-container">
+    <iframe 
+      src="https://docs.google.com/spreadsheets/d/1466cJN_jdJnh8seXfOUPYirQ_kDZNrjpUTf30FL_AfU/edit?gid=0">
+    </iframe>
+
+    <!-- Floating draggable form -->
+    <div class="sidebar" id="sidebar">
+      <button onclick="showIncome()">Add Income</button>
+      <button onclick="showExpense()">Add Expense</button>
+      <button onclick="showTransfer()">Add Transfer</button>
+      <div id="formContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+
+    let isDragging = false, offsetX = 0, offsetY = 0;
+
+    // --- Desktop dragging ---
+    sidebar.addEventListener("mousedown", e => {
+      isDragging = true;
+      offsetX = e.clientX - sidebar.getBoundingClientRect().left;
+      offsetY = e.clientY - sidebar.getBoundingClientRect().top;
+      sidebar.style.cursor = "grabbing";
+    });
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+      sidebar.style.cursor = "move";
+    });
+    document.addEventListener("mousemove", e => {
+      if (!isDragging) return;
+      let left = e.clientX - offsetX;
+      let top = e.clientY - offsetY;
+      left = Math.max(0, Math.min(window.innerWidth - sidebar.offsetWidth, left));
+      top = Math.max(0, Math.min(window.innerHeight - sidebar.offsetHeight, top));
+      sidebar.style.left = left + "px";
+      sidebar.style.top = top + "px";
+    });
+
+    // --- Touch dragging (mobile) ---
+    sidebar.addEventListener("touchstart", e => {
+      isDragging = true;
+      const touch = e.touches[0];
+      offsetX = touch.clientX - sidebar.getBoundingClientRect().left;
+      offsetY = touch.clientY - sidebar.getBoundingClientRect().top;
+    });
+    document.addEventListener("touchend", () => {
+      isDragging = false;
+    });
+    document.addEventListener("touchmove", e => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      let left = touch.clientX - offsetX;
+      let top = touch.clientY - offsetY;
+      left = Math.max(0, Math.min(window.innerWidth - sidebar.offsetWidth, left));
+      top = Math.max(0, Math.min(window.innerHeight - sidebar.offsetHeight, top));
+      sidebar.style.left = left + "px";
+      sidebar.style.top = top + "px";
+      e.preventDefault(); // prevent scrolling while dragging
+    }, { passive: false });
+    // ---------------------------
+    // Google Apps Script form functions
+    function showIncome() {
+      google.script.run.withSuccessHandler(html => {
+        document.getElementById("formContainer").innerHTML = html;
+        document.getElementById("submitIncomeBtn").addEventListener("click", () => {
+          const amount = document.getElementById("amount").value;
+          const income_category = document.getElementById("income_category").value;
+          const account = document.getElementById("account").value;
+          google.script.run.withSuccessHandler(() => {
+            alert("Income added!");
+            document.getElementById("formContainer").innerHTML = "";
+          }).submitIncome(amount, income_category, account);
+        });
+      }).getIncomeForm();
+    }
+
+    function showExpense() {
+      google.script.run.withSuccessHandler(html => {
+        document.getElementById("formContainer").innerHTML = html;
+        document.getElementById("submitExpenseBtn").addEventListener("click", () => {
+          const amount = document.getElementById("amount").value;
+          const expense_category = document.getElementById("expense_category").value;
+          const account = document.getElementById("account").value;
+          google.script.run.withSuccessHandler(() => {
+            alert("Expense added!");
+            document.getElementById("formContainer").innerHTML = "";
+          }).submitExpense(amount, expense_category, account);
+        });
+      }).getExpenseForm();
+    }
+
+    function showTransfer() {
+      google.script.run.withSuccessHandler(html => {
+        document.getElementById("formContainer").innerHTML = html;
+        document.getElementById("submitTransferBtn").addEventListener("click", () => {
+          const amount = document.getElementById("amount").value;
+          const fromAccount = document.getElementById("from_account").value;
+          const toAccount = document.getElementById("to_account").value;
+          if (!amount || fromAccount === toAccount) {
+            alert("Please enter a valid amount and choose different accounts.");
+            return;
+          }
+          google.script.run.withSuccessHandler(() => {
+            alert("Transfer added!");
+            document.getElementById("formContainer").innerHTML = "";
+          }).submitTransfer(amount, fromAccount, toAccount);
+        });
+      }).getTransferForm();
+    }
+  </script>
+
+</body>
+</html>

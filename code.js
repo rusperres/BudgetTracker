@@ -1,35 +1,41 @@
-const START_ROW = 17;
+const START_ROW = 15;
 const DATE_COL = 2;
 const CATEGORY_COL = 3;
 const TYPE_COL = 4;
 const AMOUNT_COL = 5;
 const ACCOUNT_COL = 6;
+const SHEET_ID = "1466cJN_jdJnh8seXfOUPYirQ_kDZNrjpUTf30FL_AfU";
 
-function onOpen() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  if(sheet.getName()!="Transactions")return;
-  showSidebar();
-  
-  
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index');
 }
 
-function showSidebar(){
-  const html = HtmlService.createHtmlOutputFromFile('sidebar')
-    .setTitle('Budget Tracker')
-    .setWidth(200); 
-  SpreadsheetApp.getUi().showSidebar(html);
+
+function getSheet() {
+  return SpreadsheetApp
+    .openById(SHEET_ID)
+    .getSheetByName("Transactions");
 }
 
-function addIncome() {
-  const html = HtmlService.createHtmlOutputFromFile('incomeForm')
-    .setWidth(300)
-    .setHeight(250);
-  SpreadsheetApp.getUi().showModalDialog(html, 'Add Income');
+function getIncomeForm() {
+  return HtmlService.createHtmlOutputFromFile('incomeForm').getContent();
 }
+
+function getExpenseForm() {
+  return HtmlService.createHtmlOutputFromFile('expenseForm').getContent();
+}
+
+function getTransferForm() {
+  return HtmlService.createHtmlOutputFromFile('transferForm').getContent();
+}
+
 
 
 function submitIncome(amount, income_category, account) {
-  const sheet = SpreadsheetApp.getActiveSheet();
+  console.log("Adding income:", amount, income_category, account);
+
+  const sheet = getSheet();
 
   let row = START_ROW;
   while (sheet.getRange(row, DATE_COL).getValue() !== "") {
@@ -44,16 +50,11 @@ function submitIncome(amount, income_category, account) {
   
 }
 
-function addExpense() {
-  const html = HtmlService.createHtmlOutputFromFile('expenseForm')
-    .setWidth(300)
-    .setHeight(250);
-  SpreadsheetApp.getUi().showModalDialog(html, 'Add Expense');
-}
+
 
 
 function submitExpense(amount, expense_category, account) {
-  const sheet = SpreadsheetApp.getActiveSheet();
+  const sheet = getSheet();
   amount = 0-amount;
   let row = START_ROW;
   while (sheet.getRange(row, DATE_COL).getValue() !== "") {
@@ -67,24 +68,27 @@ function submitExpense(amount, expense_category, account) {
   sheet.getRange(row, ACCOUNT_COL).setValue(account);
 }
 
-function addTransfer() {
-  const html = HtmlService.createHtmlOutputFromFile('transferForm')
-    .setWidth(300)
-    .setHeight(250);
-  SpreadsheetApp.getUi().showModalDialog(html, 'Add Transfer');
-}
+
 
 
 function getAccountColumn(sheet, accountName) {
-  const accounts = sheet.getRange("C2:C11").getValues()[0]; // get account names
-  const colIndex = accounts.indexOf(accountName);
-  if (colIndex === -1) throw new Error("Account not found: " + accountName);
-  return colIndex + 3; // C = column 3
+  // Read the account NAMES from column B (B2:B11)
+  const accounts = sheet.getRange("B2:B11").getValues().map(row => row[0].toString().trim());
+  console.log("Accounts in sheet:", accounts);
+  console.log("Account trying to match:", accountName, `"${accountName}"`);
+
+  const colIndex = accounts.indexOf(accountName.trim());
+  if (colIndex === -1) {
+    throw new Error("Account not found: " + accountName);
+  }
+
+  // The numeric values are in column C onward, so +2 to get column C as first account column
+  return colIndex + 3; // B2 → C column is colIndex + 3
 }
 
 
 function submitTransfer(amount, fromAccount, toAccount) {
-  const sheet = SpreadsheetApp.getActiveSheet();
+  const sheet = getSheet();
   amount = parseFloat(amount);
   if (isNaN(amount) || amount <= 0) {
     throw new Error("Invalid transfer amount");
@@ -112,3 +116,44 @@ function submitTransfer(amount, fromAccount, toAccount) {
   sheet.getRange(row, AMOUNT_COL).setValue(amount);
   sheet.getRange(row, ACCOUNT_COL).setValue(fromAccount + " → " + toAccount);
 }
+
+
+
+
+
+
+// function onOpen() {
+//   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//   if(sheet.getName()!="Transactions")return;
+//   showSidebar();
+  
+  
+// }
+
+// function showSidebar(){
+//   const html = HtmlService.createHtmlOutputFromFile('sidebar')
+//     .setTitle('Budget Tracker')
+//     .setWidth(200); 
+//   SpreadsheetApp.getUi().showSidebar(html);
+// }
+
+// function addIncome() {
+//   const html = HtmlService.createHtmlOutputFromFile('incomeForm')
+//     .setWidth(300)
+//     .setHeight(250);
+//   SpreadsheetApp.getUi().showModalDialog(html, 'Add Income');
+// }
+
+// function addExpense() {
+//   const html = HtmlService.createHtmlOutputFromFile('expenseForm')
+//     .setWidth(300)
+//     .setHeight(250);
+//   SpreadsheetApp.getUi().showModalDialog(html, 'Add Expense');
+// }
+
+// function addTransfer() {
+//   const html = HtmlService.createHtmlOutputFromFile('transferForm')
+//     .setWidth(300)
+//     .setHeight(250);
+//   SpreadsheetApp.getUi().showModalDialog(html, 'Add Transfer');
+// }
