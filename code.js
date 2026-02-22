@@ -4,7 +4,7 @@ const CATEGORY_COL = 3;
 const TYPE_COL = 4;
 const AMOUNT_COL = 5;
 const ACCOUNT_COL = 6;
-const SHEET_ID = "1466cJN_jdJnh8seXfOUPYirQ_kDZNrjpUTf30FL_AfU";
+const SHEET_ID = "id-here";
 
 
 function doGet() {
